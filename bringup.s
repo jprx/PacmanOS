@@ -7,6 +7,9 @@
 .align 12
 	.fill 0x1000, 4, 0xD503201F
 
+infinite_loop:
+	b .
+
 // Apparently the entrypoint needs to be aligned to a 12 byte boundary so iBoot can find it
 // Something to do with IORVBAR
 ; .align 5
