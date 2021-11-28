@@ -3,9 +3,13 @@
 .global main
 .global _main
 
+// Make a gigantic NOP sled
+.align 12
+	.fill 0x1000, 4, 0xD503201F
+
 // Apparently the entrypoint needs to be aligned to a 12 byte boundary so iBoot can find it
 // Something to do with IORVBAR
-.align 5
+; .align 5
 _start:
 start:
 main:
