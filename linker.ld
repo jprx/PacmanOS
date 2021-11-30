@@ -31,11 +31,11 @@ SECTIONS {
 	.macho_header : {
 		LONG(MACH_MAGIC); /* mach header magic */
 		LONG(16777228); /* cputype from otool -h */
-		LONG(2); /* cpusubtype (same as XNU via hex editor). caps = 0xC0 cpusubtype = 2 */
-		LONG(0x0c); /* filetype = MH_EXECUTE (same as XNU) */
+		LONG(2); /* cpusubtype */
+		LONG(0x0c); /* filetype = 0x0C (undefined, this is what m1n1 does) */
 		LONG(5); /* ncmds */
 		LONG(_COMMANDS_END - _COMMANDS_START); /* sizeofcmds */
-		LONG(4); /* flags (same flags as XNU) */
+		LONG(4); /* flags */
 		LONG(0); /* reserved */
 
 		_COMMANDS_START = .;
