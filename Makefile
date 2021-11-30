@@ -11,6 +11,7 @@ LDFLAGS := -T linker.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections 
 OBJECTS := \
 	start.o \
 	hypermain.o \
+	framebuffer.o \
 
 BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS))
 
