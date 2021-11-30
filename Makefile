@@ -5,11 +5,24 @@ AS := $(TOOLCHAIN_PREFIX)as
 LD := $(TOOLCHAIN_PREFIX)ld
 OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 
-CFLAGS := -ffreestanding -fpic -fno-pie
-LDFLAGS := -T linker.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections -static -pie
+# CFLAGS := -ffreestanding -fpic -fno-pie
+
+CFLAGS := -O2 -Wall -g -Wundef -Werror=strict-prototypes -fno-common -fno-PIE \
+	-Werror=implicit-function-declaration -Werror=implicit-int \
+	-Wsign-compare -Wunused-parameter -Wno-multichar \
+	-ffreestanding -fpic -ffunction-sections -fdata-sections \
+	-nostdinc -isystem $(shell $(CC) -print-file-name=include) -isystem sysinc \
+	-fno-stack-protector -mgeneral-regs-only -mstrict-align -march=armv8.2-a \
+
+# LDFLAGS := -T linker.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections -static -pie
+
+LDFLAGS := -T linker.ld -EL -maarch64elf --no-undefined -X -Bsymbolic \
+	-z notext --no-apply-dynamic-relocs --orphan-handling=warn \
+	-z nocopyreloc --gc-sections -pie
 
 OBJECTS := \
-	start.o
+	start.o \
+	hypermain.o \
 
 BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS))
 
@@ -56,4 +69,4 @@ build/$(TARGET).elf: $(BUILD_OBJS) linker.ld
 # copy the binary over will discard the ELF wrapper and leave us with a whole macho file
 build/$(TARGET).macho: build/$(TARGET).elf
 	@echo "  MACHO    $@"
-	@$(OBJCOPY) -O binary $< $@
+	@$(OBJCOPY) -O binary --strip-debug $< $@

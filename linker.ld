@@ -13,6 +13,7 @@ MACH_MAGIC = 0xfeedfacf;
 _va_base = 0xfffffe0007004000;
 _va_off = _va_base - _base;
 
+_max_payload_size = 64*1024*1024;
 . = 0;
 
 PHDRS {
@@ -30,11 +31,11 @@ SECTIONS {
 	.macho_header : {
 		LONG(MACH_MAGIC); /* mach header magic */
 		LONG(16777228); /* cputype from otool -h */
-		LONG(0xC0000002); /* cpusubtype (same as XNU via hex editor). caps = 0xC0 cpusubtype = 2 */
-		LONG(2); /* filetype = MH_EXECUTE (same as XNU) */
-		LONG(3); /* ncmds */
+		LONG(2); /* cpusubtype (same as XNU via hex editor). caps = 0xC0 cpusubtype = 2 */
+		LONG(0x0c); /* filetype = MH_EXECUTE (same as XNU) */
+		LONG(5); /* ncmds */
 		LONG(_COMMANDS_END - _COMMANDS_START); /* sizeofcmds */
-		LONG(0x00200001); /* flags (same flags as XNU) */
+		LONG(4); /* flags (same flags as XNU) */
 		LONG(0); /* reserved */
 
 		_COMMANDS_START = .;
@@ -76,6 +77,34 @@ SECTIONS {
 		QUAD(_text_size); /* filesize */
 		LONG(PROT_READ | PROT_EXECUTE); /* maxprot */
 		LONG(PROT_READ | PROT_EXECUTE); /* initprot */
+		LONG(0); /* nsects */
+		LONG(0); /* flags */
+
+		/* segment: rodata */
+		LONG(0x19); /* type = SEGMENT_64 */
+		LONG(0x48); /* cmdsize */
+		LONG(0x41444F52); /* segname = "RODA" */
+		. += 12;
+		QUAD(ADDR(.rodata) + _va_off); /* vmaddr */
+		QUAD(_rodata_end - ADDR(.rodata)); /* vmsize */
+		QUAD(ADDR(.rodata) - _base); /* fileoff */
+		QUAD(_rodata_end - ADDR(.rodata)); /* filesize */
+		LONG(PROT_READ); /* maxprot */
+		LONG(PROT_READ); /* initprot */
+		LONG(0); /* nsects */
+		LONG(0); /* flags */
+
+		/* segment: data */
+		LONG(0x19); /* type = SEGMENT_64 */
+		LONG(0x48); /* cmdsize */
+		LONG(0x41544144); /* segmname = "DATA" */
+		. += 12;
+		QUAD(ADDR(.data) + _va_off); /* vmaddr */
+		QUAD(_data_size); /* vmsize */
+		QUAD(ADDR(.data) - _base); /* fileoff */
+		QUAD(SIZEOF(.data)); /* filesize */
+		LONG(PROT_READ | PROT_WRITE); /* maxprot */
+		LONG(PROT_READ | PROT_WRITE); /* initprot */
 		LONG(0); /* nsects */
 		LONG(0); /* flags */
 
@@ -143,6 +172,14 @@ SECTIONS {
 		PROVIDE(_stack_bot = .);
 		. = ALIGN(0x4000);
 	} :data
+	_data_size = . - _data_start;
+	_end = .;
+	_payload_start = .;
+	_payload_end = . + _max_payload_size;
+
+	.symtab 0 : { *(.symtab) }
+	.strtab 0 : { *(.strtab) }
+	.shstrtab 0 : { *(.shstrtab) }
 
 	/DISCARD/ : {
 		*(.discard)
