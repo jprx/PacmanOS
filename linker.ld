@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(_start_rust)
 
 /* Base address that iBoot expects us to be at (see XNU) */
 /*BASE = 0xfffffe0007004000;*/
@@ -47,7 +47,7 @@ SECTIONS {
 		LONG(6); /* ARM_THREAD64 */
 		LONG(0x44); /* length */
 		. += 32 * 8; /* useless registers */
-		QUAD(_start + _va_off) /* pc */
+		QUAD(_start_rust + _va_off) /* pc */
 		. += 8; /* useless registers */
 
 		ASSERT(. - _COMMANDS_START == 0x120, "Bad unix_thread structure");

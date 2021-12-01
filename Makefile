@@ -8,12 +8,15 @@ OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 CFLAGS := -ffreestanding -fpic -fno-pie
 LDFLAGS := -T linker.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections -static -pie
 
-OBJECTS := \
-	start.o \
-	hypermain.o \
-	framebuffer.o \
+RUST_OBJECTS := \
+	target/aarch64-unknown-linux-gnu/debug/libpacman_hypervisor.a
 
-BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS))
+OBJECTS := \
+	hypermain.o \
+	framebuffer.o
+
+BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS)) \
+	$(RUST_OBJECTS)
 
 TARGET := kernel
 

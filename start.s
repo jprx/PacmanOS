@@ -9,8 +9,7 @@ _start:
 	nop
 	adrp fp, _stack_bot
 	mov sp, fp
-	adrp lr, wfi_forever
-	b hypervisor_entry
+	bl rust_start
 
 wfi_forever:
 	wfi
