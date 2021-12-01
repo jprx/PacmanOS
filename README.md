@@ -1,5 +1,5 @@
-# M1 Hypervisor
-Unnamed M1 hypervisor project
+# PacmanOS
+An aarch64 operating system / hypervisor targetting the M1 chip, designed for architectural analysis
 
 Writing some bare metal rust code that runs on M1
 
