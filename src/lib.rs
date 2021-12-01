@@ -12,24 +12,33 @@
 #![feature(alloc_error_handler)]
 #![feature(naked_functions)]
 #![feature(str_split_as_str)]
-
+#![allow(unused_imports)]
 #![feature(asm_const)]
 #![allow(named_asm_labels)]
 
 use core::panic::PanicInfo;
 
+#[macro_use]
+mod iboot;
+mod logo;
 
-#[allow(unused_imports)]
+use crate::iboot::iBootArgs;
+use crate::logo::pacman_logo;
 
-extern "C" {
-    fn hypervisor_entry();
+pub unsafe fn pack_color(r: u32, g: u32, b: u32) -> u32 {
+    return (r << 22) |
+            (g << 12) |
+            (b << 2);
 }
 
-
+// The screen better be 1920 by 1080!
 #[no_mangle]
-pub extern "C" fn rust_start (_iboot_info: usize) {
-    unsafe {
-        hypervisor_entry();
+pub unsafe extern "C" fn kmain (iboot_info: *mut iBootArgs) {
+    let mut vidmem : &mut [[u32; 1920]; 1080] = &mut *((*iboot_info).Video.baseaddr as *mut[[u32; 1920]; 1080]);
+    for x in 0 .. (*iboot_info).Video.width {
+        for y in 0 .. (*iboot_info).Video.height {
+            vidmem[y as usize][x as usize] = pacman_logo[y as usize][x as usize];
+        }
     }
 }
 
@@ -42,6 +51,7 @@ pub extern "C" fn rust_panic (_info: &PanicInfo) -> ! {
 }
 
 // Attempt to do everything including iBoot arg reading & stack initialization within Rust
+// This is the MACH-O kernel entrypoint:
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn _start_rust () {
@@ -49,7 +59,7 @@ pub unsafe extern "C" fn _start_rust () {
         "adrp fp, _stack_bot
         mov sp, fp
         adrp lr, wfi_forever
-        b rust_start",
+        b kmain",
         options(noreturn)
     }
 }

@@ -12,8 +12,6 @@ RUST_OBJECTS := \
 	target/aarch64-unknown-linux-gnu/debug/libpacman_hypervisor.a
 
 OBJECTS := \
-	hypermain.o \
-	framebuffer.o
 
 BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS)) \
 	$(RUST_OBJECTS)
