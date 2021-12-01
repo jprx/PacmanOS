@@ -54,7 +54,7 @@ pub extern "C" fn rust_panic (_info: &PanicInfo) -> ! {
 // This is the MACH-O kernel entrypoint:
 #[no_mangle]
 #[naked]
-pub unsafe extern "C" fn _start_rust () {
+pub unsafe extern "C" fn _start () {
     asm!{
         "adrp fp, _stack_bot
         mov sp, fp

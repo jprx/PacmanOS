@@ -16,7 +16,7 @@ OBJECTS := \
 BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS)) \
 	$(RUST_OBJECTS)
 
-TARGET := kernel
+TARGET := PacmanOS
 
 DEPDIR := build/.deps
 
