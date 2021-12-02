@@ -1,0 +1,45 @@
+diff --git a/hw/display/ramfb.c b/hw/display/ramfb.c
+index 79b9754a58..61b110f1a7 100644
+--- a/hw/display/ramfb.c
++++ b/hw/display/ramfb.c
+@@ -131,5 +131,40 @@ RAMFBState *ramfb_setup(Error **errp)
+     fw_cfg_add_file_callback(fw_cfg, "etc/ramfb",
+                              NULL, ramfb_fw_cfg_write, s,
+                              &s->cfg, sizeof(s->cfg), false);
++
++    // Initialize now, ask questions later
++    // Instead of making the VM do it via fw_cfg, just let Qemu handle it :)
++    // See roms/seabios/vgasrc/ramfb.c
++
++    // ramfb_create_display_surface(1920, 1080, 32, 32, 0x0000004020000000);
++    // struct QemuRAMFBCfg cfg = {
++    //     .addr   = cpu_to_be64(fb),
++    //     .fourcc = cpu_to_be32(DRM_FORMAT_XRGB8888),
++    //     .flags  = cpu_to_be32(0),
++    //     .width  = cpu_to_be32(FRAMEBUFFER_WIDTH),
++    //     .height = cpu_to_be32(FRAMEBUFFER_HEIGHT),
++    //     .stride = cpu_to_be32(FRAMEBUFFER_STRIDE),
++    // };
++
++#define fourcc_code(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | \
++                                 ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
++#define DRM_FORMAT_RGBA1010102  fourcc_code('R', 'A', '3', '0') /* [31:0] R:G:B:A 10:10:10:2 little endian */
++#define DRM_FORMAT_ARGB8888 fourcc_code('A', 'R', '2', '4') /* [31:0] A:R:G:B 8:8:8:8 little endian */
++#define FRAMEBUFFER_WIDTH      1920
++#define FRAMEBUFFER_HEIGHT     1080
++#define FRAMEBUFFER_BPP        4
++#define FRAMEBUFFER_STRIDE     (FRAMEBUFFER_BPP * FRAMEBUFFER_WIDTH)
++
++    s->cfg.width        =     cpu_to_be32(FRAMEBUFFER_WIDTH);
++    s->cfg.height       =     cpu_to_be32(FRAMEBUFFER_HEIGHT);
++    s->cfg.stride       =     cpu_to_be32(FRAMEBUFFER_STRIDE);
++    s->cfg.flags        =     cpu_to_be32(0);
++    s->cfg.fourcc       =     cpu_to_be32(DRM_FORMAT_ARGB8888);
++    s->cfg.addr         =     cpu_to_be64(0x0000000080000000);
++    // s->cfg.addr         =     cpu_to_be64(0x0000000000400000);
++    // s->cfg.addr         =     cpu_to_be64(0x0000004020000000);
++
++    ramfb_fw_cfg_write(s, 0, 0);
++
+     return s;
+ }
