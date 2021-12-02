@@ -20,4 +20,4 @@ font8x8 = { version = "0.3", default-features = false }
 bit_field = "0.10.1"
 bitflags = "1.0.4"
 linked_list_allocator = "0.9.0"
-chrono = { version = "0.4.19", default-features = false, features = [ "alloc" ] }
+rlibc = "1.0"

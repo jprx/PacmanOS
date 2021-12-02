@@ -15,30 +15,27 @@
 #![allow(unused_imports)]
 #![feature(asm_const)]
 #![allow(named_asm_labels)]
+#![feature(const_mut_refs)]
 
 use core::panic::PanicInfo;
 
 #[macro_use]
+mod console;
 mod iboot;
 mod logo;
+mod framebuffer;
+
+extern crate rlibc;
 
 use crate::iboot::iBootArgs;
 use crate::logo::pacman_logo;
+use crate::framebuffer::color10bto8b;
+use font8x8::legacy::BASIC_LEGACY;
+use crate::framebuffer::SCREEN_WIDTH;
+use crate::framebuffer::SCREEN_HEIGHT;
+use crate::console::Console;
 
-pub unsafe fn pack_color(r: u32, g: u32, b: u32) -> u32 {
-    return (r << 22) |
-            (g << 12) |
-            (b << 2);
-}
-
-// Take a 10 bit color R10:G10:B10:2 to 8 bit A8:R8:G8:B8
-// Just chop off the lowest 2 bits
-pub fn color10bto8b(c: u32) -> u32 {
-    let r = c >> 24 & 0x0FF;
-    let g = c >> 14 & 0x0FF;
-    let b = c >> 4 & 0x0FF;
-    return (0xff << 24) | (r << 18) | (g << 10) | (b << 2);
-}
+pub static mut global_console : Console = Console::new();
 
 // The screen better be 1920 by 1080!
 #[no_mangle]
@@ -60,12 +57,37 @@ pub unsafe extern "C" fn kmain_virt() {
     // let vaddr = &mut *(0x0000000080000000 as *mut u64);
     // *vaddr = 0x1234;
 
-    for y in 0 .. 1080 {
-        for x in 0 .. 1920 {
-            vidmem[y as usize][x as usize] = color10bto8b(pacman_logo[y as usize][x as usize]);
-            // vidmem[y as usize][x as usize] = 0xffffffff;
-        }
-    }
+    // for y in 0 .. 1080 {
+    //     for x in 0 .. 1920 {
+    //         vidmem[y as usize][x as usize] = color10bto8b(pacman_logo[y as usize][x as usize]);
+    //         // vidmem[y as usize][x as usize] = 0xffffffff;
+    //     }
+    // }
+    // let mut screen_x_cursor_start = unsafe { 8 * global_console.x };
+    // let mut screen_x_cursor = screen_x_cursor_start;
+    // let mut screen_y_cursor = unsafe { 8 * global_console.y };
+    // let framebuffer = framebuffer::get_framebuffer();
+
+    // for char_data in &BASIC_LEGACY['p' as usize] {
+    //     for bit in 0..8 {
+    //         if *char_data & (1 << bit) != 0 {
+    //             if (screen_x_cursor < SCREEN_WIDTH) && (screen_y_cursor < SCREEN_HEIGHT) {
+    //                 framebuffer[screen_y_cursor as usize][screen_x_cursor as usize] = 0xffffffff;
+    //             }
+    //         }
+    //         screen_x_cursor += 1;
+    //     }
+    //     screen_x_cursor = screen_x_cursor_start;
+    //     screen_y_cursor += 1;
+    // }
+
+    let mut osconsole = console::Console::new();
+    // osconsole.write_char('h');
+    // osconsole.write_char('i');
+
+    // osconsole.write_string("\nHello, PacmanOS!");
+
+    print!("Hello World!");
 }
 
 #[panic_handler]
