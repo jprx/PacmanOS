@@ -56,12 +56,12 @@ pub unsafe extern "C" fn kmain_virt() {
     // let vaddr = &mut *(0x0000000080000000 as *mut u64);
     // *vaddr = 0x1234;
 
-    // for y in 0 .. 1080 {
-    //     for x in 0 .. 1920 {
-    //         vidmem[y as usize][x as usize] = color10bto8b(pacman_logo[y as usize][x as usize]);
-    //         // vidmem[y as usize][x as usize] = 0xffffffff;
-    //     }
-    // }
+    for y in 0 .. 1080 {
+        for x in 0 .. 1920 {
+            vidmem[y as usize][x as usize] = color10bto8b(pacman_logo[y as usize][x as usize]);
+            // vidmem[y as usize][x as usize] = 0xffffffff;
+        }
+    }
     // let mut screen_x_cursor_start = unsafe { 8 * global_console.x };
     // let mut screen_x_cursor = screen_x_cursor_start;
     // let mut screen_y_cursor = unsafe { 8 * global_console.y };
@@ -83,7 +83,18 @@ pub unsafe extern "C" fn kmain_virt() {
     let mut osconsole = console::Console::new();
     osconsole.write_char('h');
     osconsole.write_char('i');
-    osconsole.write_string("\nHello, PacmanOS!");
+    osconsole.write_string("\nHello, PacmanOS!\n");
+
+    let current_el = get_el() >> 2;
+    if current_el == 0 {
+        osconsole.write_string("Running in EL0\n");
+    }
+    if current_el == 1 {
+        osconsole.write_string("Running in EL1\n");
+    }
+    if current_el == 2 {
+        osconsole.write_string("Running in EL2\n");
+    }
 
     print!("Hello World!");
 
@@ -96,6 +107,17 @@ pub extern "C" fn rust_panic (_info: &PanicInfo) -> ! {
     loop {
         x = x + 1;
     }
+}
+
+pub extern "C" fn get_el() -> u64 {
+    let current_el : u64;
+    unsafe {
+        asm!{
+            "mrs {}, CurrentEL",
+            out(reg) current_el
+        }
+    }
+    return current_el;
 }
 
 // Attempt to do everything including iBoot arg reading & stack initialization within Rust
@@ -127,7 +149,7 @@ pub unsafe extern "C" fn _start_virt () {
     // because stacks grow downwards
     asm!{
         "
-        adrp fp, _stack_bot
+        adrp fp, 0x40010000
         mov sp, fp
         adrp lr, wfi_forever
         b kmain_virt
