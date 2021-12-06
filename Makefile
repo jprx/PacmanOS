@@ -6,7 +6,7 @@ LD := $(TOOLCHAIN_PREFIX)ld
 OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 
 CFLAGS := -ffreestanding -fpic -fno-pie
-LDFLAGS := -T linker.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections -static -pie
+LDFLAGS := -T linker.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections -static -pie --gc-sections
 
 RUST_OBJECTS := \
 	target/aarch64-unknown-linux-gnu/debug/libpacman_hypervisor.a

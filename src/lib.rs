@@ -25,8 +25,6 @@ mod iboot;
 mod logo;
 mod framebuffer;
 
-extern crate rlibc;
-
 use crate::iboot::iBootArgs;
 use crate::logo::pacman_logo;
 use crate::framebuffer::color10bto8b;
@@ -34,6 +32,7 @@ use font8x8::legacy::BASIC_LEGACY;
 use crate::framebuffer::SCREEN_WIDTH;
 use crate::framebuffer::SCREEN_HEIGHT;
 use crate::console::Console;
+
 
 pub static mut global_console : Console = Console::new();
 
@@ -82,12 +81,13 @@ pub unsafe extern "C" fn kmain_virt() {
     // }
 
     let mut osconsole = console::Console::new();
-    // osconsole.write_char('h');
-    // osconsole.write_char('i');
-
-    // osconsole.write_string("\nHello, PacmanOS!");
+    osconsole.write_char('h');
+    osconsole.write_char('i');
+    osconsole.write_string("\nHello, PacmanOS!");
 
     print!("Hello World!");
+
+    loop {}
 }
 
 #[panic_handler]
@@ -127,7 +127,7 @@ pub unsafe extern "C" fn _start_virt () {
     // because stacks grow downwards
     asm!{
         "
-        adrp fp, 0x40010000
+        adrp fp, _stack_bot
         mov sp, fp
         adrp lr, wfi_forever
         b kmain_virt

@@ -156,6 +156,9 @@ SECTIONS {
 		_got_start = .;
 		*(.got)
 		_got_end = .;
+		/* Sections that used to be not loaded */
+		*(.plt) *(.plt.*) *(.iplt) *(.igot)
+		*(.data.rel.ro)
 		. = ALIGN(0x4000);
 		_file_end = .;
 	} :data
@@ -207,11 +210,11 @@ SECTIONS {
 		*(.comment*)
 	}
 
-	.empty (NOLOAD) : {
+	/*.empty (NOLOAD) : {
 		*(.plt) *(.plt.*) *(.iplt) *(.igot)
 		*(.data.rel.ro)
 	}
-	ASSERT(SIZEOF(.empty) == 0, "Unexpected sections detected!")
+	ASSERT(SIZEOF(.empty) == 0, "Unexpected sections detected!")*/
 
 	.got.plt (NOLOAD) : {
 		*(.got.plt)
