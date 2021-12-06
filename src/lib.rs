@@ -26,13 +26,13 @@ mod logo;
 mod framebuffer;
 
 use crate::iboot::iBootArgs;
+use crate::iboot::VirtMode;
 use crate::logo::pacman_logo;
 use crate::framebuffer::color10bto8b;
 use font8x8::legacy::BASIC_LEGACY;
 use crate::framebuffer::SCREEN_WIDTH;
 use crate::framebuffer::SCREEN_HEIGHT;
 use crate::console::Console;
-
 
 pub static mut global_console : Console = Console::new();
 
@@ -51,52 +51,21 @@ pub unsafe extern "C" fn kmain (iboot_info: *mut iBootArgs) {
 #[no_mangle]
 pub unsafe extern "C" fn kmain_virt() {
     let mut vidmem : &mut [[u32; 1920]; 1080] = &mut *(0x0000000080000000 as *mut[[u32; 1920]; 1080]);
-    // // vidmem[0][0] = 0xffffff;
-
-    // let vaddr = &mut *(0x0000000080000000 as *mut u64);
-    // *vaddr = 0x1234;
 
     for y in 0 .. 1080 {
         for x in 0 .. 1920 {
             vidmem[y as usize][x as usize] = color10bto8b(pacman_logo[y as usize][x as usize]);
-            // vidmem[y as usize][x as usize] = 0xffffffff;
         }
     }
-    // let mut screen_x_cursor_start = unsafe { 8 * global_console.x };
-    // let mut screen_x_cursor = screen_x_cursor_start;
-    // let mut screen_y_cursor = unsafe { 8 * global_console.y };
-    // let framebuffer = framebuffer::get_framebuffer();
 
-    // for char_data in &BASIC_LEGACY['p' as usize] {
-    //     for bit in 0..8 {
-    //         if *char_data & (1 << bit) != 0 {
-    //             if (screen_x_cursor < SCREEN_WIDTH) && (screen_y_cursor < SCREEN_HEIGHT) {
-    //                 framebuffer[screen_y_cursor as usize][screen_x_cursor as usize] = 0xffffffff;
-    //             }
-    //         }
-    //         screen_x_cursor += 1;
-    //     }
-    //     screen_x_cursor = screen_x_cursor_start;
-    //     screen_y_cursor += 1;
-    // }
+    println!("");
+    println!("Booting PacmanOS in EL{}", get_el() >> 2);
 
-    let mut osconsole = console::Console::new();
-    osconsole.write_char('h');
-    osconsole.write_char('i');
-    osconsole.write_string("\nHello, PacmanOS!\n");
-
-    let current_el = get_el() >> 2;
-    if current_el == 0 {
-        osconsole.write_string("Running in EL0\n");
+    let mut i = 0;
+    loop {
+        println!("This is a very long string of text that I am printing to the screen with an integer {}", i);
+        i+=1;
     }
-    if current_el == 1 {
-        osconsole.write_string("Running in EL1\n");
-    }
-    if current_el == 2 {
-        osconsole.write_string("Running in EL2\n");
-    }
-
-    print!("Hello World!");
 
     loop {}
 }

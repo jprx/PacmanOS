@@ -13,6 +13,11 @@ macro_rules! print {
     ($($arg:tt)*) => ($crate::console::_console_print(format_args!($($arg)*)));
 }
 
+#[macro_export]
+macro_rules! println {
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
 /*
  * Console
  * An object representing the current text console drawn to the screen
