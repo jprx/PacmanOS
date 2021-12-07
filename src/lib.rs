@@ -42,6 +42,42 @@ pub unsafe extern "C" fn kmain (iboot_info: *mut iBootArgs) -> ! {
     virt::CurrentMode = virt::VirtMode::Baremetal;
     framebuffer::FramebufferAddress = (*iboot_info).Video.baseaddr;
 
+    let vidmem = framebuffer::get_framebuffer();
+    for y in 0 .. 1080 {
+        for x in 0 .. 1920 {
+            vidmem[y as usize][x as usize] = pacman_logo[y as usize][x as usize];
+        }
+    }
+
+    let mut osconsole = console::Console::new();
+    osconsole.write_char('\n');
+    osconsole.write_char('\n');
+    osconsole.write_char('\n');
+    osconsole.write_char('\n');
+    osconsole.write_char('\n');
+    osconsole.write_char('\n');
+    osconsole.write_char('H');
+    osconsole.write_char('i');
+    osconsole.write_string("\nHello PacmanOS\n");
+
+    let current_el = get_el();
+
+    if current_el == 0 {
+        osconsole.write_string("Currently in EL0\n");
+    }
+    if current_el == 1 {
+        osconsole.write_string("Currently in EL1\n");
+    }
+    if current_el == 2 {
+        osconsole.write_string("Currently in EL2\n");
+    }
+
+    println!("Booting PacmanOS in {:?} mode at EL{}", unsafe { virt::CurrentMode }, get_el());
+
+    osconsole.write_string("Just finished trying to call println!\n");
+
+    loop {}
+
     common_main();
 }
 
