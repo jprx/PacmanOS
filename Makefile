@@ -12,6 +12,7 @@ RUST_OBJECTS := \
 	target/applem1-pacmanos-none/debug/libpacman_hypervisor.a
 
 OBJECTS := \
+	exception.o \
 
 BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS)) \
 	$(RUST_OBJECTS)
