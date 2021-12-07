@@ -19,6 +19,16 @@ Then you should be able to build the rust component of PacmanOS with `build.sh`
 
 Don't forget to link every time you change the Rust!
 
+### Cross Compiling
+
+The Apple M1 PacmanOS target is defined in `applem1-pacmanos-none.json`. It is based on the `aarch64-unknown-linux-gnu` target for Rust. You can get the default builtin target json with the following command:
+
+```
+rustc +nightly -Z unstable-options --print target-spec-json --target aarch64-unknown-linux-gnu
+```
+
+See https://docs.rust-embedded.org/embedonomicon/custom-target.html
+
 ## Linking
 
 You can link the built Rust binary with the `linker.ld` linker script using the provided container and Makefile:

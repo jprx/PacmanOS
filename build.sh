@@ -1,5 +1,5 @@
 #!/bin/bash
 # Builds the rust component of the project
-cargo build -Zbuild-std=core -Zbuild-std-features=compiler-builtins-mem --target=aarch64-unknown-linux-gnu
+cargo build -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem --target=applem1-pacmanos-none.json
 docker-compose run devel make clean
 docker-compose run devel make

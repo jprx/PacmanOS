@@ -156,9 +156,6 @@ SECTIONS {
 		_got_start = .;
 		*(.got)
 		_got_end = .;
-		/* Sections that used to be not loaded */
-		*(.plt) *(.plt.*) *(.iplt) *(.igot)
-		*(.data.rel.ro)
 		. = ALIGN(0x4000);
 		_file_end = .;
 	} :data
@@ -195,26 +192,11 @@ SECTIONS {
 		*(.comment*)
 	}
 
-	.symtab 0 : { *(.symtab) }
-	.strtab 0 : { *(.strtab) }
-	.shstrtab 0 : { *(.shstrtab) }
-
-	/DISCARD/ : {
-		*(.discard)
-		*(.discard.*)
-		*(.interp .dynamic)
-		*(.dynsym .dynstr .hash .gnu.hash)
-		*(.eh_frame)
-		*(.gnu.version*)
-		*(.note*)
-		*(.comment*)
-	}
-
-	/*.empty (NOLOAD) : {
+	.empty (NOLOAD) : {
 		*(.plt) *(.plt.*) *(.iplt) *(.igot)
 		*(.data.rel.ro)
 	}
-	ASSERT(SIZEOF(.empty) == 0, "Unexpected sections detected!")*/
+	ASSERT(SIZEOF(.empty) == 0, "Unexpected sections detected!")
 
 	.got.plt (NOLOAD) : {
 		*(.got.plt)
