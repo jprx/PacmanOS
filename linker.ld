@@ -3,7 +3,7 @@ ENTRY(_start)
 /* Base address that iBoot expects us to be at (see XNU) */
 /*BASE = 0xfffffe0007004000;*/
 
-STACK_SIZE = 0x2000;
+STACK_SIZE = 0x10000;
 
 PROT_READ = 0x01;
 PROT_WRITE = 0x02;

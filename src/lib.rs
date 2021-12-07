@@ -1,9 +1,9 @@
 #![no_std]
+#![no_main]
 #![feature(asm)]
 #![allow(dead_code)]
 #![allow(unused_attributes)]
 #![allow(non_upper_case_globals)]
-#![feature(abi_x86_interrupt)]
 #![allow(non_camel_case_types)]
 #![feature(const_fn_fn_ptr_basics)]
 #![allow(unused_parens)]
@@ -77,6 +77,7 @@ pub unsafe extern "C" fn kmain_virt() -> ! {
 // Any virtualization hacks should be transparent at this point
 pub unsafe extern "C" fn common_main() -> ! {
 	exception::set_vbar_el2((exception::exception_vector_base_el2 as *const () as u64));
+	exception::set_vbar_el1((exception::exception_vector_base_el2 as *const () as u64));
 
 	let mut osconsole = console::Console::new();
 	osconsole.write_char('\n');
@@ -87,7 +88,7 @@ pub unsafe extern "C" fn common_main() -> ! {
 	osconsole.write_char('\n');
 	osconsole.write_char('H');
 	osconsole.write_char('i');
-	osconsole.write_string("\nHello PacmanOS\n");
+	osconsole.write_string("\nHello PacmanOS (2)\n");
 
 	let current_el = get_el();
 
@@ -101,6 +102,11 @@ pub unsafe extern "C" fn common_main() -> ! {
 		osconsole.write_string("Currently in EL2\n");
 	}
 
+	osconsole.write_string("Attempting to use the write! macro\n");
+	use core::fmt::Write;
+	write!(osconsole, "A test number: {}\n", 42);
+	write!(osconsole, "A test enum: {:?}\n", virt::CurrentMode);
+
 	println!("Booting PacmanOS in {:?} mode at EL{}", unsafe { virt::CurrentMode }, get_el());
 	println!("VBAR_EL2 is at 0x{:X}", exception::get_vbar_el2());
 
@@ -110,11 +116,10 @@ pub unsafe extern "C" fn common_main() -> ! {
 }
 
 #[panic_handler]
-pub extern "C" fn rust_panic (_info: &PanicInfo) -> ! {
-	let mut x = 0;
-	loop {
-		x = x + 1;
-	}
+pub extern "C" fn rust_panic (_info: &PanicInfo<'_>) -> ! {
+	let mut osconsole = console::Console::new();
+	osconsole.write_string("\nRUST PANIC RUST PANIC RUST PANIC!!!!!!!!!!!\n");
+	loop {}
 }
 
 pub extern "C" fn get_el() -> u64 {

@@ -26,3 +26,7 @@ exception_vector_base_el2:
 
 .align 7
 	b serror_exception_el2
+
+.rept 8192
+	b unk_exception
+.endr
