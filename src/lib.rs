@@ -48,6 +48,9 @@ pub unsafe extern "C" fn kmain (iboot_info: *mut iBootArgs) -> ! {
 // Main but for Qemu
 #[no_mangle]
 pub unsafe extern "C" fn kmain_virt() -> ! {
+    // The instant we write to any static data living in the flash, Qemu slows down a TON
+    // This is a consequence of the current hack to make flash writeable. Really need to
+    // implement proper Mach-O loading.
     virt::CurrentMode = virt::VirtMode::Qemu;
 
     // @TODO: Fix logo colors for ramfb
