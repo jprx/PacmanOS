@@ -24,9 +24,9 @@ mod console;
 mod iboot;
 mod logo;
 mod framebuffer;
+mod virt;
 
 use crate::iboot::iBootArgs;
-use crate::iboot::VirtMode;
 use crate::logo::pacman_logo;
 use crate::framebuffer::color10bto8b;
 use font8x8::legacy::BASIC_LEGACY;
@@ -38,33 +38,35 @@ pub static mut global_console : Console = Console::new();
 
 // The screen better be 1920 by 1080!
 #[no_mangle]
-pub unsafe extern "C" fn kmain (iboot_info: *mut iBootArgs) {
-    let mut vidmem : &mut [[u32; 1920]; 1080] = &mut *((*iboot_info).Video.baseaddr as *mut[[u32; 1920]; 1080]);
-    for x in 0 .. (*iboot_info).Video.width {
-        for y in 0 .. (*iboot_info).Video.height {
-            vidmem[y as usize][x as usize] = pacman_logo[y as usize][x as usize];
-        }
-    }
+pub unsafe extern "C" fn kmain (iboot_info: *mut iBootArgs) -> ! {
+    virt::CurrentMode = virt::VirtMode::Baremetal;
+    framebuffer::FramebufferAddress = (*iboot_info).Video.baseaddr;
+
+    common_main();
 }
 
 // Main but for Qemu
 #[no_mangle]
-pub unsafe extern "C" fn kmain_virt() {
-    let mut vidmem : &mut [[u32; 1920]; 1080] = &mut *(0x0000000080000000 as *mut[[u32; 1920]; 1080]);
+pub unsafe extern "C" fn kmain_virt() -> ! {
+    virt::CurrentMode = virt::VirtMode::Qemu;
+
+    // @TODO: Fix logo colors for ramfb
+
+    common_main();
+}
+
+// Main method called by both bare metal and qemu modes
+// Any virtualization hacks should be transparent at this point
+pub unsafe extern "C" fn common_main() -> ! {
+    let vidmem = framebuffer::get_framebuffer();
+
+    println!("");
+    println!("Booting PacmanOS in {:?} mode at EL{}", unsafe { virt::CurrentMode }, get_el());
 
     for y in 0 .. 1080 {
         for x in 0 .. 1920 {
-            vidmem[y as usize][x as usize] = color10bto8b(pacman_logo[y as usize][x as usize]);
+            vidmem[y as usize][x as usize] = pacman_logo[y as usize][x as usize];
         }
-    }
-
-    println!("");
-    println!("Booting PacmanOS in EL{}", get_el() >> 2);
-
-    let mut i = 0;
-    loop {
-        println!("This is a very long string of text that I am printing to the screen with an integer {}", i);
-        i+=1;
     }
 
     loop {}
@@ -86,7 +88,7 @@ pub extern "C" fn get_el() -> u64 {
             out(reg) current_el
         }
     }
-    return current_el;
+    return (current_el >> 2) & 0x03;
 }
 
 // Attempt to do everything including iBoot arg reading & stack initialization within Rust

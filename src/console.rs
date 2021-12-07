@@ -103,7 +103,6 @@ impl fmt::Write for Console {
 pub fn _console_print (args: fmt::Arguments) {
     use core::fmt::Write;
     unsafe {
-        // global_console.write_str("Static Hello");
         global_console.write_fmt(args).unwrap();
     }
 }

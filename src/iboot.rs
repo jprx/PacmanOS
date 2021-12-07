@@ -31,9 +31,3 @@ pub struct iBootArgs {
 	pub bootFlags  			: u64,             				// Additional flags specified by the bootloader
 	pub memSizeActual  		: u64,      					// Actual size of memory
 }
-
-#[derive(Copy,Clone,Debug)]
-pub enum VirtMode {
-	Baremetal,
-	Qemu,
-}

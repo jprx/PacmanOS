@@ -1,11 +1,14 @@
 pub const SCREEN_WIDTH   : usize = 1920;
 pub const SCREEN_HEIGHT  : usize = 1080;
 
-pub const FRAMEBUFFER_ADDR : usize = 0x0000000080000000;
+// By default this is the Qemu address
+// It will be replaced during early bringup when the kernel detects the presence of an
+// iBoot compliant boot args structure, if one exists (otherwise we're in Qemu)
+pub static mut FramebufferAddress : u64 = 0x0000000080000000;
 
 // Get the current framebuffer
-pub const fn get_framebuffer() -> &'static mut [[u32; SCREEN_WIDTH]; SCREEN_HEIGHT] {
-    return unsafe { &mut *(FRAMEBUFFER_ADDR as *mut[[u32; SCREEN_WIDTH]; SCREEN_HEIGHT]) };
+pub fn get_framebuffer() -> &'static mut [[u32; SCREEN_WIDTH]; SCREEN_HEIGHT] {
+    return unsafe { &mut *(FramebufferAddress as *mut[[u32; SCREEN_WIDTH]; SCREEN_HEIGHT]) };
 }
 
 pub fn pack_color(r: u32, g: u32, b: u32) -> u32 {
