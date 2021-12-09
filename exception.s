@@ -2,6 +2,8 @@
 
 .global exception_vector_base_el2
 
+.section .text
+
 .align 16
 exception_vector_base_el2:
 	b sync_exception_el2

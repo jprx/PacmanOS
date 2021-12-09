@@ -76,8 +76,8 @@ pub unsafe extern "C" fn kmain_virt() -> ! {
 // Main method called by both bare metal and qemu modes
 // Any virtualization hacks should be transparent at this point
 pub unsafe extern "C" fn common_main() -> ! {
-	exception::set_vbar_el2((exception::exception_vector_base_el2 as *const () as u64));
-	exception::set_vbar_el1((exception::exception_vector_base_el2 as *const () as u64));
+	exception::set_vbar_el2((exception::exception_vector_rust as *const () as u64));
+	exception::set_vbar_el1((exception::exception_vector_rust as *const () as u64));
 
 	let mut osconsole = console::Console::new();
 	osconsole.write_char('\n');
@@ -135,6 +135,7 @@ pub extern "C" fn get_el() -> u64 {
 
 // Attempt to do everything including iBoot arg reading & stack initialization within Rust
 // This is the MACH-O kernel entrypoint:
+#[link_section = ".bringup.init"]
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn _start () {
@@ -142,6 +143,8 @@ pub unsafe extern "C" fn _start () {
 	// Otherwise we're on an iBoot compliant thing so probably M1 bare metal
 	asm!{
 		"
+		mov x1, 1
+		msr SPSel, x1
 		cmp x0, #0
 		beq _start_virt
 

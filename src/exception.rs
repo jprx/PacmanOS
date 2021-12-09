@@ -76,3 +76,40 @@ pub fn get_vbar_el1 () -> u64 {
 	}
 	return baseaddr;
 }
+
+#[no_mangle]
+#[naked]
+pub unsafe extern "C" fn exception_vector_rust () -> ! {
+	asm!{
+		"
+.align 16
+	b sync_exception_el2
+
+.align 7
+	b irq_exception_el2
+
+.align 7
+	b fiq_exception_el2
+
+.align 7
+	b serror_exception_el2
+
+.align 7
+	b sync_exception_el2
+
+.align 7
+	b irq_exception_el2
+
+.align 7
+	b fiq_exception_el2
+
+.align 7
+	b serror_exception_el2
+
+.rept 8192
+	b unk_exception
+.endr
+		",
+		options(noreturn)
+	}
+}

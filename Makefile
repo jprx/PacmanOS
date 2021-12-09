@@ -6,13 +6,12 @@ LD := $(TOOLCHAIN_PREFIX)ld
 OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 
 CFLAGS := -ffreestanding -fpic -fno-pie
-LDFLAGS := -T linker.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections -static -pie --gc-sections
+LDFLAGS := -T linker_qemu.ld -EL -maarch64elf -z notext -z nocopyreloc --gc-sections -static -pie --gc-sections
 
 RUST_OBJECTS := \
 	target/applem1-pacmanos-none/debug/libpacman_hypervisor.a
 
 OBJECTS := \
-	exception.o \
 
 BUILD_OBJS := $(patsubst %,build/%,$(OBJECTS)) \
 	$(RUST_OBJECTS)
