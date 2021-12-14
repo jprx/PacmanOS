@@ -26,6 +26,8 @@ mod logo;
 mod framebuffer;
 mod virt;
 mod exception;
+mod memory;
+mod msr;
 
 use crate::iboot::iBootArgs;
 use crate::logo::pacman_logo;
@@ -88,7 +90,7 @@ pub unsafe extern "C" fn common_main() -> ! {
 	osconsole.write_char('\n');
 	osconsole.write_char('H');
 	osconsole.write_char('i');
-	osconsole.write_string("\nHello PacmanOS (2)\n");
+	osconsole.write_string("\nHello PacmanOS\n");
 
 	let current_el = get_el();
 
@@ -111,6 +113,11 @@ pub unsafe extern "C" fn common_main() -> ! {
 	println!("VBAR_EL2 is at 0x{:X}", exception::get_vbar_el2());
 
 	osconsole.write_string("Just finished trying to call println!\n");
+
+	write_msr!("VBAR_EL2", (exception::exception_vector_rust as *const () as u64));
+
+	println!("VBAR_EL2 is at 0x{:X}", read_msr!("VBAR_EL2"));
+	println!("ID_AA64MMFR0_EL1 is 0x{:X}", read_msr!("ID_AA64MMFR0_EL1"));
 
 	loop {}
 }

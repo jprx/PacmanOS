@@ -4,8 +4,8 @@ use crate::framebuffer::SCREEN_HEIGHT;
 use crate::framebuffer::get_framebuffer;
 use font8x8::legacy::BASIC_LEGACY;
 
-pub const CONSOLE_WIDTH  : usize = SCREEN_WIDTH / 8;
-pub const CONSOLE_HEIGHT : usize = SCREEN_HEIGHT / 8;
+pub const CONSOLE_WIDTH  : usize = SCREEN_WIDTH / 16;
+pub const CONSOLE_HEIGHT : usize = SCREEN_HEIGHT / 16;
 
 // See: https://os.phil-opp.com/vga-text-mode/#a-println-macro
 #[macro_export]
@@ -52,8 +52,11 @@ impl Console {
         for char_data in &BASIC_LEGACY[c as usize] {
             for bit in 0..8 {
                 if *char_data & (1 << bit) != 0 {
-                    if (screen_x_cursor < SCREEN_WIDTH) && (screen_y_cursor < SCREEN_HEIGHT) {
-                        framebuffer[screen_y_cursor as usize][screen_x_cursor as usize] = 0xffffffff;
+                    if (((2 * screen_x_cursor) + 1) < SCREEN_WIDTH) && (((2 * screen_y_cursor) + 1) < SCREEN_HEIGHT) {
+                        framebuffer[2*(screen_y_cursor as usize)][2*(screen_x_cursor as usize)] = 0xffffffff;
+                        framebuffer[2*(screen_y_cursor as usize)+1][2*(screen_x_cursor as usize)] = 0xffffffff;
+                        framebuffer[2*(screen_y_cursor as usize)][2*(screen_x_cursor as usize)+1] = 0xffffffff;
+                        framebuffer[2*(screen_y_cursor as usize)+1][2*(screen_x_cursor as usize)+1] = 0xffffffff;
                     }
                 }
                 screen_x_cursor += 1;
