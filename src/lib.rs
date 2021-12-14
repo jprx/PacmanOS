@@ -37,6 +37,9 @@ use crate::framebuffer::SCREEN_WIDTH;
 use crate::framebuffer::SCREEN_HEIGHT;
 use crate::console::Console;
 
+#[macro_use]
+use bitfield::bitfield;
+
 pub static mut global_console : Console = Console::new();
 
 // The screen better be 1920 by 1080!
@@ -118,6 +121,9 @@ pub unsafe extern "C" fn common_main() -> ! {
 
 	println!("VBAR_EL2 is at 0x{:X}", read_msr!("VBAR_EL2"));
 	println!("ID_AA64MMFR0_EL1 is 0x{:X}", read_msr!("ID_AA64MMFR0_EL1"));
+
+	let id_AA64MMFR0_EL1 = memory::IDAA64MMFR0EL1(read_msr!("ID_AA64MMFR0_EL1"));
+	println!("{:?}", id_AA64MMFR0_EL1);
 
 	loop {}
 }

@@ -11,3 +11,4 @@ crate-type = ["staticlib"]
 
 [dependencies]
 font8x8 = { version = "0.3", default-features = false }
+bitfield = "0.13.2"

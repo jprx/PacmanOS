@@ -1,3 +1,12 @@
 #!/bin/bash
 source config.sh
-$PACMAN_QEMU -machine virt -machine virtualization=on -cpu max -vga none -device ramfb -monitor stdio -m 4G -kernel build/PacmanOS.elf -s -S
+
+if [[ -z $1 ]];
+then
+	DEBUG_FLAGS=""
+else
+	DEBUG_FLAGS="-s -S"
+	echo "Waiting for debugger..."
+fi
+
+$PACMAN_QEMU -machine virt -machine virtualization=on -cpu max -vga none -device ramfb -monitor stdio -m 4G -kernel build/PacmanOS.elf $DEBUG_FLAGS
