@@ -28,6 +28,7 @@ mod virt;
 mod exception;
 mod memory;
 mod msr;
+mod serial;
 
 use crate::iboot::iBootArgs;
 use crate::logo::pacman_logo;
@@ -84,38 +85,38 @@ pub unsafe extern "C" fn common_main() -> ! {
 	exception::set_vbar_el2((exception::exception_vector_rust as *const () as u64));
 	exception::set_vbar_el1((exception::exception_vector_rust as *const () as u64));
 
-	let mut osconsole = console::Console::new();
-	osconsole.write_char('\n');
-	osconsole.write_char('\n');
-	osconsole.write_char('\n');
-	osconsole.write_char('\n');
-	osconsole.write_char('\n');
-	osconsole.write_char('\n');
-	osconsole.write_char('H');
-	osconsole.write_char('i');
-	osconsole.write_string("\nHello PacmanOS\n");
+	// let mut osconsole = console::Console::new();
+	// osconsole.write_char('\n');
+	// osconsole.write_char('\n');
+	// osconsole.write_char('\n');
+	// osconsole.write_char('\n');
+	// osconsole.write_char('\n');
+	// osconsole.write_char('\n');
+	// osconsole.write_char('H');
+	// osconsole.write_char('i');
+	// osconsole.write_string("\nHello PacmanOS\n");
 
-	let current_el = get_el();
+	// let current_el = get_el();
 
-	if current_el == 0 {
-		osconsole.write_string("Currently in EL0\n");
-	}
-	if current_el == 1 {
-		osconsole.write_string("Currently in EL1\n");
-	}
-	if current_el == 2 {
-		osconsole.write_string("Currently in EL2\n");
-	}
+	// if current_el == 0 {
+	// 	osconsole.write_string("Currently in EL0\n");
+	// }
+	// if current_el == 1 {
+	// 	osconsole.write_string("Currently in EL1\n");
+	// }
+	// if current_el == 2 {
+	// 	osconsole.write_string("Currently in EL2\n");
+	// }
 
-	osconsole.write_string("Attempting to use the write! macro\n");
-	use core::fmt::Write;
-	write!(osconsole, "A test number: {}\n", 42);
-	write!(osconsole, "A test enum: {:?}\n", virt::CurrentMode);
+	// osconsole.write_string("Attempting to use the write! macro\n");
+	// use core::fmt::Write;
+	// write!(osconsole, "A test number: {}\n", 42);
+	// write!(osconsole, "A test enum: {:?}\n", virt::CurrentMode);
 
 	println!("Booting PacmanOS in {:?} mode at EL{}", unsafe { virt::CurrentMode }, get_el());
 	println!("VBAR_EL2 is at 0x{:X}", exception::get_vbar_el2());
 
-	osconsole.write_string("Just finished trying to call println!\n");
+	// osconsole.write_string("Just finished trying to call println!\n");
 
 	write_msr!("VBAR_EL2", (exception::exception_vector_rust as *const () as u64));
 

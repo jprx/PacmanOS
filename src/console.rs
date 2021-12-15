@@ -2,6 +2,7 @@ use core::fmt;
 use crate::framebuffer::SCREEN_WIDTH;
 use crate::framebuffer::SCREEN_HEIGHT;
 use crate::framebuffer::get_framebuffer;
+use crate::serial::Serial;
 use font8x8::legacy::BASIC_LEGACY;
 
 pub const CONSOLE_WIDTH  : usize = SCREEN_WIDTH / 16;
@@ -29,6 +30,7 @@ pub struct Console {
 
 // The global cursor position & console state
 pub static mut global_console : Console = Console::new();
+pub static mut global_serial : Serial = Serial::new();
 
 impl Console {
     pub const fn new() -> Console {
@@ -107,5 +109,6 @@ pub fn _console_print (args: fmt::Arguments) {
     use core::fmt::Write;
     unsafe {
         global_console.write_fmt(args).unwrap();
+        global_serial.write_fmt(args).unwrap();
     }
 }
