@@ -75,6 +75,14 @@ Block entries are basically just huge pages (point at a block). Or last level in
 
 Table descriptors only have upper attributes.
 Block/ page descriptors have upper and lower attributes.
+
+In general, all entries (table entry, block / page entry) look like this:
++-----------------------------------------------------------------------------------------+
+| Upper Attributes | Reserved | Next Address | Reserved | Lower Attributes | Size | Valid |
++-----------------------------------------------------------------------------------------+
+
+Except table entries don't have lower attributes
+
 */
 
 bitflags! {
@@ -153,23 +161,89 @@ bitflags! {
 }
 
 impl TableEntry {
-	/*
-
-	In general, all entries (table entry, block / page entry) look like this:
-	+-----------------------------------------------------------------------------------------+
-	| Upper Attributes | Reserved | Next Address | Reserved | Lower Attributes | Size | Valid |
-	+-----------------------------------------------------------------------------------------+
-
-	Except table entries don't have lower attributes
-	*/
-	pub const fn new() -> Self {
+	pub const fn invalid() -> Self {
 		return TableEntry(0)
+	}
+
+	#[inline]
+	pub fn get_flags(&self) -> TableEntryFlags {
+		// from_bits_truncate will ignore any fields that aren't defined in the struct
+		return TableEntryFlags::from_bits_truncate(self.0);
+	}
+
+	#[inline]
+	pub fn set_flags(&mut self, new_flags: TableEntryFlags) -> &mut Self {
+		self.0 = self.address() | new_flags.bits();
+		return self;
+	}
+
+	// Get the address of the table we point to (bits [47:14])
+	#[inline]
+	pub fn address(&self) -> u64 {
+		return self.0 & 0x0000_FFFFFFFFC_000;
+	}
+
+	// Set the address of the table we point to without modifying flags
+	#[inline]
+	pub fn set_address(&mut self, new_addr: u64) -> &mut Self {
+		let flags = self.get_flags();
+		self.0 = new_addr as u64 | flags.bits();
+		return self;
+	}
+
+	pub fn is_valid(&self) -> bool {
+		return self.get_flags().contains(TableEntryFlags::Valid);
+	}
+
+	pub fn new(base_addr: u64, flags: TableEntryFlags) -> Self {
+		let mut new_entry = TableEntry::invalid();
+		new_entry.set_address(base_addr);
+		new_entry.set_flags(flags);
+		return new_entry;
 	}
 }
 
 impl BlockEntry {
-	pub const fn new() -> Self {
+	pub const fn invalid() -> Self {
 		return BlockEntry(0)
+	}
+
+	#[inline]
+	pub fn get_flags(&self) -> BlockEntryFlags {
+		// from_bits_truncate will ignore any fields that aren't defined in the struct
+		return BlockEntryFlags::from_bits_truncate(self.0);
+	}
+
+	#[inline]
+	pub fn set_flags(&mut self, new_flags: BlockEntryFlags) -> &mut Self {
+		self.0 = self.address() | new_flags.bits();
+		return self;
+	}
+
+	// Get the address of the block we point to (bits [47:14])
+	// For level 2 pages the bits are actually bits [47:25] but that's ok
+	#[inline]
+	pub fn address(&self) -> u64 {
+		return self.0 & 0x0000_FFFFFFFFC_000;
+	}
+
+	// Set the address of the block we point to without modifying flags
+	#[inline]
+	pub fn set_address(&mut self, new_addr: u64) -> &mut Self {
+		let flags = self.get_flags();
+		self.0 = new_addr as u64 | flags.bits();
+		return self;
+	}
+
+	pub fn is_valid(&self) -> bool {
+		return self.get_flags().contains(BlockEntryFlags::Valid);
+	}
+
+	pub fn new(base_addr: u64, flags: BlockEntryFlags) -> Self {
+		let mut new_entry = BlockEntry::invalid();
+		new_entry.set_address(base_addr);
+		new_entry.set_flags(flags);
+		return new_entry;
 	}
 }
 
