@@ -16,6 +16,7 @@
 #![feature(asm_const)]
 #![allow(named_asm_labels)]
 #![feature(const_mut_refs)]
+#![allow(unused_unsafe)]
 
 use core::panic::PanicInfo;
 
@@ -29,6 +30,7 @@ mod exception;
 mod memory;
 mod msr;
 mod serial;
+mod hypervisor;
 
 use crate::iboot::iBootArgs;
 use crate::logo::pacman_logo;
@@ -40,6 +42,9 @@ use crate::console::Console;
 
 #[macro_use]
 use bitfield::bitfield;
+
+#[macro_use]
+use bitflags::bitflags;
 
 pub static mut global_console : Console = Console::new();
 
@@ -118,13 +123,20 @@ pub unsafe extern "C" fn common_main() -> ! {
 
 	// osconsole.write_string("Just finished trying to call println!\n");
 
-	write_msr!("VBAR_EL2", (exception::exception_vector_rust as *const () as u64));
-
-	println!("VBAR_EL2 is at 0x{:X}", read_msr!("VBAR_EL2"));
-	println!("ID_AA64MMFR0_EL1 is 0x{:X}", read_msr!("ID_AA64MMFR0_EL1"));
-
 	let id_AA64MMFR0_EL1 = memory::IDAA64MMFR0EL1(read_msr!("ID_AA64MMFR0_EL1"));
-	println!("{:?}", id_AA64MMFR0_EL1);
+	println!("ID_AA64MMFR0_EL1 Reports: {:?}", id_AA64MMFR0_EL1);
+
+	// Bounce to el1
+	hypervisor::exit_el2(common_main_el1 as u64);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn common_main_el1() -> ! {
+	println!("We're in EL{}", get_el());
+
+	asm!{
+		"wfi"
+	}
 
 	loop {}
 }
