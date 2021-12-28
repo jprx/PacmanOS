@@ -13,6 +13,10 @@ pub unsafe fn exit_el2(el1_entry: u64) -> ! {
 	// Reset SCTLR_EL1 per "Bare-metal Boot Code for ARMv8-A Processors" Application Note
 	write_msr!("SCTLR_EL1", 0);
 
+	// Clear everything in HCR_EL2 so it is reset to a known value
+	// Most notably, this ensures HCR_EL2.DC is set to 0 so EL1 has full control over cacheability
+	write_msr!("HCR_EL2", 0);
+
 	// Clear HCR_EL2.VM and set HCR_EL2.RW = 1 to set EL1 to aarch64
 	asm!{
 		"mrs x0, HCR_EL2",
@@ -84,23 +88,4 @@ pub unsafe fn exit_el2(el1_entry: u64) -> ! {
 		",
 		options(noreturn)
 	}
-
-	// asm!{
-	// 	// Reset SCTLR_EL1 per "Bare-metal Boot Code for ARMv8-A Processors" Application Note
-	// 	"msr SCTLR_EL1, XZR",
-
-	// 	// Clear HCR_EL2.VM and set HCR_EL2.RW = 1 to set EL1 to aarch64
-	// 	"mrs x0, HCR_EL2",
-	// 	"bic x0, x0, #1",
-	// 	"orr x0, x0, #(1 << 31)",
-	// 	"msr HCR_EL2, x0",
-
-	// 	// Configure SPSR_EL2 (this is the new PSTATE)
-	// 	"mov x0, #0b00101", // DAIF = 0000
-	// 	"msr SPSR_EL2, x0",
-
-	// 	// See ya l8r
-	// 	"eret",
-	// 	options(noreturn)
-	// }
 }

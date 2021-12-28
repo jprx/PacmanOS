@@ -31,6 +31,7 @@ mod memory;
 mod msr;
 mod serial;
 mod hypervisor;
+mod cache;
 
 use crate::iboot::iBootArgs;
 use crate::logo::pacman_logo;
@@ -87,6 +88,7 @@ pub unsafe extern "C" fn kmain_virt() -> ! {
 // Main method called by both bare metal and qemu modes
 // Any virtualization hacks should be transparent at this point
 pub unsafe extern "C" fn common_main() -> ! {
+	// Setup basic exception routines for early bringup:
 	exception::set_vbar_el2((exception::exception_vector_rust as *const () as u64));
 	exception::set_vbar_el1((exception::exception_vector_rust as *const () as u64));
 
@@ -125,14 +127,30 @@ pub unsafe extern "C" fn common_main() -> ! {
 
 	let id_AA64MMFR0_EL1 = memory::IDAA64MMFR0EL1(read_msr!("ID_AA64MMFR0_EL1"));
 	println!("ID_AA64MMFR0_EL1 Reports: {:?}", id_AA64MMFR0_EL1);
+	println!("ID_AA64MMFR0_EL1.PARange is {:X}", id_AA64MMFR0_EL1.PARange());
 
 	// Bounce to el1
 	hypervisor::exit_el2(common_main_el1 as u64);
 }
 
+/*
+ * common_main_el1
+ * Entrypoint in EL1 where EL2 drops us
+ * Our job now is to setup paging and the MMU/ caches
+ */
 #[no_mangle]
 pub unsafe extern "C" fn common_main_el1() -> ! {
+	// Wassup
 	println!("We're in EL{}", get_el());
+	println!("Turning on caches");
+
+	cache::enable_caches();
+
+	println!("Turning on paging");
+
+	memory::init();
+
+	println!("Done");
 
 	asm!{
 		"wfi"
@@ -143,7 +161,7 @@ pub unsafe extern "C" fn common_main_el1() -> ! {
 
 #[panic_handler]
 pub extern "C" fn rust_panic (_info: &PanicInfo<'_>) -> ! {
-	let mut osconsole = console::Console::new();
+	let mut osconsole = serial::Serial::new();
 	osconsole.write_string("\nRUST PANIC RUST PANIC RUST PANIC!!!!!!!!!!!\n");
 	loop {}
 }
