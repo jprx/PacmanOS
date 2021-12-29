@@ -1,50 +1,19 @@
-diff --git a/hw/block/pflash_cfi01.c b/hw/block/pflash_cfi01.c
-index 81f9f971d8..55ddea3953 100644
---- a/hw/block/pflash_cfi01.c
-+++ b/hw/block/pflash_cfi01.c
-@@ -451,6 +451,10 @@ static void pflash_write(PFlashCFI01 *pfl, hwaddr offset,
-         memory_region_rom_device_set_romd(&pfl->mem, false);
-     }
+diff --git a/hw/arm/virt.c b/hw/arm/virt.c
+index 30da05dfe0..d4c72455db 100644
+--- a/hw/arm/virt.c
++++ b/hw/arm/virt.c
+@@ -161,7 +161,8 @@ static const MemMapEntry base_memmap[] = {
+     [VIRT_PCIE_PIO] =           { 0x3eff0000, 0x00010000 },
+     [VIRT_PCIE_ECAM] =          { 0x3f000000, 0x01000000 },
+     /* Actual RAM size depends on initial RAM and device memory settings */
+-    [VIRT_MEM] =                { GiB, LEGACY_RAMLIMIT_BYTES },
++    // [VIRT_MEM] =                { GiB, LEGACY_RAMLIMIT_BYTES },
++    [VIRT_MEM] =                { 0x80000000, LEGACY_RAMLIMIT_BYTES },
+ };
  
-+    // printf("pflash_write(addr=%x, value=%x, width=%x)\n", offset, value, width);
-+    pflash_data_write(pfl, offset, value, width, be);
-+    return;
-+
-     switch (pfl->wcycle) {
-     case 0:
-         /* read mode */
-@@ -677,8 +681,10 @@ static MemTxResult pflash_mem_write_with_attrs(void *opaque, hwaddr addr, uint64
-     bool be = !!(pfl->features & (1 << PFLASH_BE));
- 
-     if ((pfl->features & (1 << PFLASH_SECURE)) && !attrs.secure) {
-+        // printf("DENYING PFLASH WRITE\n");
-         return MEMTX_ERROR;
-     } else {
-+        // printf("ALLOWING PFLASH WRITE\n");
-         pflash_write(opaque, addr, value, len, be);
-         return MEMTX_OK;
-     }
-diff --git a/hw/core/sysbus.c b/hw/core/sysbus.c
-index 05c1da3d31..c81001e577 100644
---- a/hw/core/sysbus.c
-+++ b/hw/core/sysbus.c
-@@ -141,6 +141,14 @@ static void sysbus_mmio_map_common(SysBusDevice *dev, int n, hwaddr addr,
-         memory_region_del_subregion(get_system_memory(), dev->mmio[n].memory);
-     }
-     dev->mmio[n].addr = addr;
-+    if (dev->mmio[n].memory->readonly) {
-+        printf("Changing a region as not readonly\n");
-+        dev->mmio[n].memory->readonly = false;
-+    }
-+    if (dev->mmio[n].memory->rom_device) {
-+        printf("Changing rom device to not a rom device\n");
-+        dev->mmio[n].memory->rom_device = false;
-+    }
-     if (may_overlap) {
-         memory_region_add_subregion_overlap(get_system_memory(),
-                                             addr,
+ /*
 diff --git a/hw/display/ramfb.c b/hw/display/ramfb.c
-index 79b9754a58..e64f2caa1c 100644
+index 79b9754a58..73cd39857a 100644
 --- a/hw/display/ramfb.c
 +++ b/hw/display/ramfb.c
 @@ -131,5 +131,28 @@ RAMFBState *ramfb_setup(Error **errp)
@@ -63,7 +32,7 @@ index 79b9754a58..e64f2caa1c 100644
 +#define FRAMEBUFFER_HEIGHT     1080
 +#define FRAMEBUFFER_BPP        4
 +#define FRAMEBUFFER_STRIDE     (FRAMEBUFFER_BPP * FRAMEBUFFER_WIDTH)
-+#define PACMAN_VIRT_FRAMEBUFFER_ADDR 0x0000000080000000
++#define PACMAN_VIRT_FRAMEBUFFER_ADDR 0x00000000C0000000
 +
 +    s->cfg.width        =     cpu_to_be32(FRAMEBUFFER_WIDTH);
 +    s->cfg.height       =     cpu_to_be32(FRAMEBUFFER_HEIGHT);

@@ -74,11 +74,6 @@ pub static mut GLOBAL_L2_TABLE : PageTable = PageTable {
 	entries: [0; NUM_TABLE_ENTRIES]
 };
 
-// For TTBR1
-pub static mut GLOBAL_L0_TABLE1 : PageTable = PageTable {
-	entries: [0; NUM_TABLE_ENTRIES]
-};
-
 /*
  * init
  * Configures the MSRs to set up paging.
@@ -118,7 +113,9 @@ pub unsafe fn init(next_stage: u64) -> ! {
 	// both point to the same physical memory region. So, adding 0xFFFF0000_00000000 to an address will
 	// let us start executing code in the upper half of the address space.
 
+	// Also don't forget to move the stack pointer up
 	asm!{
+		// "add sp, sp, {0}",
 		"br {0}",
 		in(reg) next_stage + UPPER_MEM_BEGIN,
 		options(noreturn)

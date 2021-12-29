@@ -4,7 +4,7 @@ pub const SCREEN_HEIGHT  : usize = 1080;
 // By default this is the Qemu address
 // It will be replaced during early bringup when the kernel detects the presence of an
 // iBoot compliant boot args structure, if one exists (otherwise we're in Qemu)
-pub static mut FramebufferAddress : u64 = 0x0000000080000000;
+pub static mut FramebufferAddress : u64 = 0x00000000C0000000;
 
 // Get the current framebuffer
 pub fn get_framebuffer() -> &'static mut [[u32; SCREEN_WIDTH]; SCREEN_HEIGHT] {

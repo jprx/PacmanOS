@@ -16,10 +16,11 @@ PROT_WRITE = 0x02;
 PROT_EXECUTE = 0x04;
 
 SECTIONS {
-	/*. = 0x40000000;*/
+	/* 1024M is 0x40000000 */
 	/* LONG is a 32 bit word inserted directly into the section in question */
 
-	. = 1024M;
+	/* Where I think the M1 places us in physical memory (accounting for the mach o header at 0x87004000) */
+	. = 0x87008000;
 	_loadable_begin = .;
 	.macho_header : ALIGN(16K) {
 		/* See: https://opensource.apple.com/source/xnu/xnu-2050.18.24/EXTERNAL_HEADERS/mach-o/loader.h */
