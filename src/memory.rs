@@ -13,11 +13,23 @@ use bitflags::bitflags;
 use crate::read_msr;
 use crate::write_msr;
 
+pub const NUM_TABLE_ENTRIES : usize = 2048;
+
 // Points to another table
+#[derive(Copy,Clone,Debug,PartialEq,Eq)]
 pub struct TableEntry(u64);
 
 // Points to a target page (either huge page or end of walk)
+#[derive(Copy,Clone,Debug,PartialEq,Eq)]
 pub struct BlockEntry(u64);
+
+// 16 KB aligned page table
+// Store every entry as a u64, we are responsible for managing which entry is what kind
+#[derive(Copy,Clone,Debug,PartialEq,Eq)]
+#[repr(C, align(16384))]
+pub struct PageTable {
+	entries: [u64; NUM_TABLE_ENTRIES]
+}
 
 // SCTLR_EL1.M is bit 0
 pub const SCTLR_EL1_FLAG_ENABLE_MMU : u64 = 0b01;
@@ -43,7 +55,25 @@ pub const SCTLR_EL1_FLAG_ENABLE_MMU : u64 = 0b01;
  IRGN0[9:8] 	= 0b01 (Normal memory, Inner Write-Back Read-Allocate Write-Allocate Cacheable.)
  T0SZ[5:0] 		= 16 (2^48 bytes in lower address space)
  */
-pub const TCR_EL1_VALUE : u64 = 0x800237510B510;
+pub const TCR_EL1_VALUE : u64 = 0x800237510B510; // 0x37520B520; // 0x800237520B520;
+
+// For TTBR0
+pub static mut GLOBAL_L0_TABLE0 : PageTable = PageTable {
+	entries: [0; NUM_TABLE_ENTRIES]
+};
+
+pub static mut GLOBAL_L1_TABLE : PageTable = PageTable {
+	entries: [0; NUM_TABLE_ENTRIES]
+};
+
+pub static mut GLOBAL_L2_TABLE : PageTable = PageTable {
+	entries: [0; NUM_TABLE_ENTRIES]
+};
+
+// For TTBR1
+pub static mut GLOBAL_L0_TABLE1 : PageTable = PageTable {
+	entries: [0; NUM_TABLE_ENTRIES]
+};
 
 /*
  * init
@@ -53,13 +83,47 @@ pub const TCR_EL1_VALUE : u64 = 0x800237510B510;
  * Should drop us into an identity mapped EL1 execution context.
  */
 pub unsafe fn init() {
+
+	GLOBAL_L0_TABLE0.entries[0] = TableEntry::new(
+								(&mut GLOBAL_L1_TABLE as *mut _) as u64,
+								TableEntryFlags::Valid | TableEntryFlags::Kind,
+							).to_u64();
+
+	GLOBAL_L1_TABLE.entries[0] = BlockEntry::new(
+								0 as u64,
+								BlockEntryFlags::Valid | BlockEntryFlags::AF,
+							).to_u64();
+
+	GLOBAL_L1_TABLE.entries[1] = TableEntry::new(
+								(&mut GLOBAL_L2_TABLE as *mut _) as u64,
+								TableEntryFlags::Valid | TableEntryFlags::Kind,
+							).to_u64();
+
+	for i in 0..NUM_TABLE_ENTRIES {
+		GLOBAL_L2_TABLE.entries[i] = BlockEntry::new(
+								(i << 25) as u64,
+								BlockEntryFlags::Valid | BlockEntryFlags::AF,
+							).to_u64();
+	}
+
 	write_msr!("TCR_EL1", TCR_EL1_VALUE);
+	write_msr!("TTBR0_EL1", (&GLOBAL_L0_TABLE0 as *const _) as u64);
+	write_msr!("TTBR1_EL1", (&GLOBAL_L0_TABLE0 as *const _) as u64);
 	mmu_enable();
 }
 
 pub unsafe fn mmu_enable() {
-	let sctlr_el1 = read_msr!("SCTLR_EL1");
-	write_msr!("SCTLR_EL1", sctlr_el1 | SCTLR_EL1_FLAG_ENABLE_MMU);
+	// let sctlr_el1 = read_msr!("SCTLR_EL1");
+	// write_msr!("SCTLR_EL1", sctlr_el1 | SCTLR_EL1_FLAG_ENABLE_MMU);
+
+	asm!{
+		"mrs x0, SCTLR_EL1",
+		"orr x0, x0, #0x1",
+		"msr SCTLR_EL1, x0",
+		"dsb sy",
+		"isb",
+		lateout("x0") _
+	}
 }
 
 pub unsafe fn mmu_disable () {
@@ -91,7 +155,7 @@ bitflags! {
 
 		// 0 = points to another table
 		// 1 = points to a huge page
-		// This should always be 0 for Table Entries
+		// This should always be 1 for Table Entries
 		const Kind = (1 << 1);
 
 		// Non-secure bit (res0 for us since we aren't using secure mode)
@@ -115,9 +179,10 @@ bitflags! {
 	pub struct BlockEntryFlags : u64 {
 		const Valid = (1 << 0);
 
-		// This should always be 1 for Block / Page Entries
+		// This should be 0 for Block Entries, 1 for Page Entries (level 3)
 		// (Page Entry = last level of translation, level 3 for us)
-		const Kind = (1 << 1);
+		// This makes it effectively !HugePage so I call it SmallPage here
+		const SmallPage = (1 << 1);
 
 		// Unprivileged execute never
 		const UXN = (1 << 54);
@@ -143,6 +208,8 @@ bitflags! {
 		const nG = (1 << 11);
 
 		// Access flag
+		// As this is managed in software, accessing a block entry with AF != 1
+		// will result in a fault!
 		const AF = (1 << 10);
 
 		// Shareability field, ignored for now
@@ -201,6 +268,14 @@ impl TableEntry {
 		new_entry.set_flags(flags);
 		return new_entry;
 	}
+
+	pub fn to_u64(&self) -> u64 {
+		return self.0;
+	}
+
+	pub fn from_u64(in_u64: u64) -> Self {
+		return TableEntry(in_u64);
+	}
 }
 
 impl BlockEntry {
@@ -244,6 +319,14 @@ impl BlockEntry {
 		new_entry.set_address(base_addr);
 		new_entry.set_flags(flags);
 		return new_entry;
+	}
+
+	pub fn to_u64(&self) -> u64 {
+		return self.0;
+	}
+
+	pub fn from_u64(in_u64: u64) -> Self {
+		return BlockEntry(in_u64);
 	}
 }
 
