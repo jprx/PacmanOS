@@ -13,7 +13,11 @@ use bitflags::bitflags;
 use crate::read_msr;
 use crate::write_msr;
 
+// Number of entries in a 16KB table
 pub const NUM_TABLE_ENTRIES : usize = 2048;
+
+// Where upper memory begins (virtual address of TTBR1 base)
+pub const UPPER_MEM_BEGIN : u64 = 0xFFFF000000000000;
 
 // Points to another table
 #[derive(Copy,Clone,Debug,PartialEq,Eq)]
@@ -81,8 +85,10 @@ pub static mut GLOBAL_L0_TABLE1 : PageTable = PageTable {
  *
  * Call this from EL1 please.
  * Should drop us into an identity mapped EL1 execution context.
+ *
+ * We will exit executing the code at next_stage in the upper half of the address space.
  */
-pub unsafe fn init() {
+pub unsafe fn init(next_stage: u64) -> ! {
 
 	GLOBAL_L0_TABLE0.entries[0] = TableEntry::new(
 								(&mut GLOBAL_L1_TABLE as *mut _) as u64,
@@ -107,6 +113,18 @@ pub unsafe fn init() {
 	write_msr!("TTBR0_EL1", (&GLOBAL_L0_TABLE0 as *const _) as u64);
 	write_msr!("TTBR1_EL1", (&GLOBAL_L0_TABLE0 as *const _) as u64);
 	mmu_enable();
+
+	// Once we get here, TTBR0 (starting at 0x00000000_00000000) and TTBR1 (starting at 0xFFFF0000_00000000)
+	// both point to the same physical memory region. So, adding 0xFFFF0000_00000000 to an address will
+	// let us start executing code in the upper half of the address space.
+
+	asm!{
+		"br {0}",
+		in(reg) next_stage + UPPER_MEM_BEGIN,
+		options(noreturn)
+	}
+
+	// crate::common_main_upperhalf();
 }
 
 pub unsafe fn mmu_enable() {

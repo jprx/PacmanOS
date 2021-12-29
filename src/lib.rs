@@ -148,14 +148,25 @@ pub unsafe extern "C" fn common_main_el1() -> ! {
 
 	println!("Turning on paging");
 
-	memory::init();
+	memory::init(common_main_upperhalf as u64);
+}
 
-	println!("Done");
+/*
+ * common_main_upperhalf
+ * We have initialized memory and should now be executing in the upper half of the address space
+ */
+pub unsafe extern "C" fn common_main_upperhalf() -> ! {
+	let pc : u64;
+
+	asm!{
+		"adr x0, .",
+		out("x0") pc
+	}
+	println!("We should be running in the upper half. PC is 0x{:X}", pc);
 
 	asm!{
 		"wfi"
 	}
-
 	loop {}
 }
 
