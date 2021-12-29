@@ -9,4 +9,4 @@ else
 	echo "Waiting for debugger..."
 fi
 
-$PACMAN_QEMU -machine virt -machine virtualization=on -cpu max -vga none -device ramfb -monitor none -serial stdio -m 4G -kernel build/PacmanOS.elf $DEBUG_FLAGS
+$PACMAN_QEMU -machine virt -machine virtualization=on -cpu max -vga none -device ramfb -monitor stdio -serial none -m 4G -kernel build/PacmanOS.elf $DEBUG_FLAGS

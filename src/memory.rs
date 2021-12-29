@@ -86,23 +86,20 @@ pub unsafe fn init() {
 
 	GLOBAL_L0_TABLE0.entries[0] = TableEntry::new(
 								(&mut GLOBAL_L1_TABLE as *mut _) as u64,
-								TableEntryFlags::Valid | TableEntryFlags::Kind,
 							).to_u64();
 
 	GLOBAL_L1_TABLE.entries[0] = BlockEntry::new(
 								0 as u64,
-								BlockEntryFlags::Valid | BlockEntryFlags::AF,
 							).to_u64();
 
 	GLOBAL_L1_TABLE.entries[1] = TableEntry::new(
 								(&mut GLOBAL_L2_TABLE as *mut _) as u64,
-								TableEntryFlags::Valid | TableEntryFlags::Kind,
 							).to_u64();
 
 	for i in 0..NUM_TABLE_ENTRIES {
-		GLOBAL_L2_TABLE.entries[i] = BlockEntry::new(
+		GLOBAL_L2_TABLE.entries[i] = BlockEntry::new_with_flags(
 								(i << 25) as u64,
-								BlockEntryFlags::Valid | BlockEntryFlags::AF,
+								BlockEntryFlags::empty(),
 							).to_u64();
 	}
 
@@ -262,10 +259,24 @@ impl TableEntry {
 		return self.get_flags().contains(TableEntryFlags::Valid);
 	}
 
-	pub fn new(base_addr: u64, flags: TableEntryFlags) -> Self {
+	// Create a new TableEntryFlags with the default (should "Just Work") values
+	pub fn new(base_addr: u64) -> Self {
 		let mut new_entry = TableEntry::invalid();
 		new_entry.set_address(base_addr);
-		new_entry.set_flags(flags);
+
+		// Every table entry should be valid & have bit[1] set to 1 (kind == 1)
+		new_entry.set_flags(TableEntryFlags::Valid | TableEntryFlags::Kind);
+		return new_entry;
+	}
+
+	// Create a new TableEntryFlags with custom flags
+	// This still sets the flags that should always be set no matter what
+	pub fn new_with_flags(base_addr: u64, flags: TableEntryFlags) -> Self {
+		let mut new_entry = TableEntry::invalid();
+		new_entry.set_address(base_addr);
+
+		// Every table entry should be valid & have bit[1] set to 1 (kind == 1)
+		new_entry.set_flags(flags | TableEntryFlags::Valid | TableEntryFlags::Kind);
 		return new_entry;
 	}
 
@@ -314,10 +325,21 @@ impl BlockEntry {
 		return self.get_flags().contains(BlockEntryFlags::Valid);
 	}
 
-	pub fn new(base_addr: u64, flags: BlockEntryFlags) -> Self {
+	pub fn new(base_addr: u64) -> Self {
 		let mut new_entry = BlockEntry::invalid();
 		new_entry.set_address(base_addr);
-		new_entry.set_flags(flags);
+
+		// Every block entry should be valid and set AF (access flag) to 1 to prevent faults on access
+		new_entry.set_flags(BlockEntryFlags::Valid | BlockEntryFlags::AF);
+		return new_entry;
+	}
+
+	pub fn new_with_flags(base_addr: u64, flags: BlockEntryFlags) -> Self {
+		let mut new_entry = BlockEntry::invalid();
+		new_entry.set_address(base_addr);
+
+		// Every block entry should be valid and set AF (access flag) to 1 to prevent faults on access
+		new_entry.set_flags(flags | BlockEntryFlags::Valid | BlockEntryFlags::AF);
 		return new_entry;
 	}
 
