@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-#![feature(asm)]
 #![allow(dead_code)]
 #![allow(unused_attributes)]
 #![allow(non_upper_case_globals)]
@@ -19,6 +18,7 @@
 #![allow(unused_unsafe)]
 
 use core::panic::PanicInfo;
+use core::arch::asm;
 
 #[macro_use]
 mod console;

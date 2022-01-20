@@ -2,6 +2,7 @@
 // HCR_EL2.VM should be 0 to disable "stage 2" translation
 
 use crate::write_msr;
+use crate::asm;
 
 /*
  * exit_el2

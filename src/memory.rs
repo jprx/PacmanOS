@@ -12,6 +12,7 @@ use bitfield::bitfield;
 use bitflags::bitflags;
 use crate::read_msr;
 use crate::write_msr;
+use core::arch::asm;
 
 // Number of entries in a 16KB table
 pub const NUM_TABLE_ENTRIES : usize = 2048;

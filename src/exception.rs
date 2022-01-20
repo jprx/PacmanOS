@@ -3,6 +3,7 @@
 use crate::serial;
 use crate::println;
 use crate::get_el;
+use core::arch::asm;
 
 extern "C" {
 	pub fn exception_vector_base_el2();

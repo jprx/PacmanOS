@@ -1,4 +1,5 @@
 // Minimal support to enable and configure caches
+use core::arch::asm;
 
 pub unsafe extern "C" fn enable_caches() {
 	// See "Bare-metal Boot Code for ARMv8-A Processors" Application Note
