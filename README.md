@@ -1,7 +1,7 @@
 # PacmanOS
 An aarch64 bare metal playground targetting the M1 chip, designed for microarchitecture research and also for fun
 
-This is essentially everything required to run Rust bare metal on M1 and nothing more. If you're looking for multithreading, drivers, a filesystem, etc. you should check out the [Asahi Linux project](https://asahilinux.org).
+This is essentially everything required to run Rust bare metal on M1 and nothing more. If you're looking for multithreading, drivers, a filesystem, etc. you should check out the [Asahi Linux project](https://asahilinux.org) or [FreeBSD](https://wiki.freebsd.org/AppleSilicon).
 PacmanOS is for people who want to run simple experiments on the bare metal (eg. microarchitectural security researchers), for whom the extra noise of heavy OS code is detrimental.
 
 The intention behind this is to create a zero noise environment for performing microarchitectural reverse engineering tasks, and also one that runs with hypervisor privileges (EL2) so that any and all features of the SoC can be inspected.
