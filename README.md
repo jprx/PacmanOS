@@ -1,5 +1,39 @@
 # PacmanOS
-An aarch64 operating system / hypervisor targetting the M1 chip, designed for microarchitecture research and also for fun
+An aarch64 bare metal playground targetting the M1 chip, designed for microarchitecture research and also for fun
+
+This is essentially everything required to run Rust bare metal on M1 and nothing more. If you're looking for multithreading, drivers, a filesystem, etc. you should check out the [Asahi Linux project](https://asahilinux.org). PacmanOS is for people who want to run simple experiments on the bare metal (eg. microarchitectural security researchers).
+
+# Use at your own risk
+
+Booting PacmanOS on bare metal involves running this code with hypervisor privileges on your Mac. It should go without saying this is incredibly dangerous and can cause serious issues. We do not recommend using this on a machine you care about!
+
+## License
+
+This code is released under the MIT license:
+
+```
+MIT License
+
+Copyright (c) 2022 Joseph Ravichandran, Weon Taek Na, Jay Lang, Mengjia Yan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## Building
 
