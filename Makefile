@@ -52,6 +52,7 @@ build/%.o: %.c
 # See the .macho step for how this all comes together
 build/$(TARGET).elf: $(BUILD_OBJS) linker.ld
 	@echo "  LD    $@"
+	@mkdir -p "$(dir $@)"
 	@$(LD) $(LDFLAGS) -o $@ $(BUILD_OBJS)
 
 # Idea here is from the m1n1 Makefile (https://github.com/AsahiLinux/m1n1)
